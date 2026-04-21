@@ -1,8 +1,14 @@
 package re.security.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,29 +32,42 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     // Tài khoản mặc định
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        // ADMIN
+//        UserDetails admin = User.withUsername("admin123")
+//                .password(passwordEncoder().encode("123456$"))
+//                .roles("ADMIN")
+//                .build();
+//        UserDetails user = User.withUsername("hunghx")
+//                .password(passwordEncoder().encode("123456"))
+//                .roles("USER")
+//                .build();
+//        UserDetails man = User.withUsername("manager01")
+//                .password(passwordEncoder().encode("123456"))
+//                .roles("MANAGER")
+//                .build();
+//        return new InMemoryUserDetailsManager(admin, user, man);
+//    }
+    // thực hiện xác thực thông qua userdertail service và password encoder
     @Bean
-    public UserDetailsService userDetailsService() {
-        // ADMIN
-        UserDetails admin = User.withUsername("admin123")
-                .password(passwordEncoder().encode("123456$"))
-                .roles("ADMIN")
-                .build();
-        UserDetails user = User.withUsername("hunghx")
-                .password(passwordEncoder().encode("123456"))
-                .roles("USER")
-                .build();
-        UserDetails man = User.withUsername("manager01")
-                .password(passwordEncoder().encode("123456"))
-                .roles("MANAGER")
-                .build();
-        return new InMemoryUserDetailsManager(admin, user, man);
+    public AuthenticationProvider  authenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        return daoAuthenticationProvider;
     }
-
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
+        return config.getAuthenticationManager(); //
+    }
     // Tầng xác thực và phân quyền
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        authenticationManager().authenticate(new UsernamePasswordAuthenticationToken(username, password))
         http.cors(AbstractHttpConfigurer::disable)   // tắt cors
                 .csrf(AbstractHttpConfigurer::disable) // tắt csrf
                 // phân quyền cho các API theo đường dẫn
