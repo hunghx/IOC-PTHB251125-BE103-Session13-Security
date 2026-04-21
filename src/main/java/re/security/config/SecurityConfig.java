@@ -3,6 +3,7 @@ package re.security.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+// Phân quyền theo phương thức
+@EnableMethodSecurity
 public class SecurityConfig {
     // Tạo cấu hình tùy chỉnh
     // Các tài khoản mặc định (username, password, ROLE)
@@ -51,7 +54,7 @@ public class SecurityConfig {
                 // phân quyền cho các API theo đường dẫn
                 .authorizeHttpRequests(
                         req->
-                                req.requestMatchers("/api/v1/admin/**").hasRole("ADMIN") // admin ms đc truy cập api này
+                                req.requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN") // admin ms đc truy cập api này
                                         .requestMatchers("/api/v1/user/**").hasRole("USER")
                                         .requestMatchers("/api/v1/manager/**").hasRole("MANAGER")
                                         .anyRequest().authenticated() // các api khác thì phải xác thực thì ms vào đc
