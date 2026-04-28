@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Getter
 @Setter
 @Entity
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
