@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -22,9 +23,9 @@ public class JwtService {
     private long expiredTime;
     // Sinh jwt
     // accessToken : 15p
-    public String generateAccessToken(String username){
+    public String generateAccessToken(UserDetails userDetails){
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userDetails.getUsername())
 //                .setPayload(userDetails.getAuthorities().toString())
                 .setIssuedAt(new Date()) // thời gian bắt đầu token hoạt động
                 .setExpiration(new Date(new Date().getTime() + expiredTime))
@@ -39,14 +40,16 @@ public class JwtService {
     }
     // Sử dụng Key để mã hóa base 64 chứ ko dùng chuỗi raw secret
     // refreshToken : 7 ngày
-    public String generateRefreshToken(String username){
+    public String generateRefreshToken(UserDetails userDetails){
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userDetails.getUsername())
 //                .setPayload(userDetails.getAuthorities().toString())
                 .setIssuedAt(new Date()) // thời gian bắt đầu token hoạt động
                 .setExpiration(new Date(new Date().getTime() + expiredTime*96*7))
-                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+//                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
+
     }
     // Xác minh token hợp lệ
     public boolean validateToken(String token){
