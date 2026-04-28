@@ -23,9 +23,9 @@ public class JwtService {
     private long expiredTime;
     // Sinh jwt
     // accessToken : 15p
-    public String generateAccessToken(UserDetails userDetails){
+    public String generateAccessToken(String username){
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
+                .setSubject(username)
 //                .setPayload(userDetails.getAuthorities().toString())
                 .setIssuedAt(new Date()) // thời gian bắt đầu token hoạt động
                 .setExpiration(new Date(new Date().getTime() + expiredTime))

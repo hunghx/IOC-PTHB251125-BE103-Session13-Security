@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,12 +21,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import re.security.config.jwt.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 // Phân quyền theo phương thức
 @EnableMethodSecurity
 public class SecurityConfig {
+    @Autowired
+    private JwtAuthenticationFilter  jwtAuthenticationFilter;
     // Tạo cấu hình tùy chỉnh
     // Các tài khoản mặc định (username, password, ROLE)
     @Bean
@@ -73,12 +78,16 @@ public class SecurityConfig {
                 // phân quyền cho các API theo đường dẫn
                 .authorizeHttpRequests(
                         req->
-                                req.requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN") // admin ms đc truy cập api này
+                                req.requestMatchers("/api/v1/auth/**").permitAll() // tất cả
+                                        .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN") // admin ms đc truy cập api này
                                         .requestMatchers("/api/v1/user/**").hasRole("USER")
                                         .requestMatchers("/api/v1/manager/**").hasRole("MANAGER")
                                         .anyRequest().authenticated() // các api khác thì phải xác thực thì ms vào đc
                 )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(ss-> ss.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // phi trạng thái của restful
                 // cơ chế dăng nhâp http basic
+                .authenticationProvider(authenticationProvider())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults()); // mặc đinh username pass : /login - POST
         return http.build();
