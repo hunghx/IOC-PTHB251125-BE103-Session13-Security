@@ -27,4 +27,6 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@RequestBody FormLogin request){
         return ResponseEntity.ok(authenSevice.login(request));
     }
+    // Tìm hiểu cơ chế lưu trữ accessToken và refreshToken trong DB
+    // Xử lý tken hết hạn và các lỗi như Ko có quyền truy cập (403) và ko đc xác thực (401)
 }
